@@ -15,9 +15,36 @@ This tool is valuable for researchers and practitioners interested in understand
 
 ## Features
 
-* Targeted Adversarial Attack: Generate adversarial images targeting a specific class or a randomly selected class.
-* Visualization: Display the original image, the adversarial noise, and the adversarial image side by side for comparison.
-* Classification Utilities: Classify images and retrieve class indices and names.
-* Probability Calculation: Obtain the probability of the adversarial image being classified as the target class.
-* Pre-trained Model Support: Compatible with any pre-trained model from torchvision; defaults to ResNet50.
-* GPU Acceleration: Utilize CUDA-enabled GPUs for faster computations if available.
+- **Targeted Adversarial Attack**: Generate adversarial images targeting a specific class or a randomly selected class.
+- **Visualization**: Display the original image, the adversarial noise, and the adversarial image side by side for comparison.
+- **Classification Utilities**: Classify images and retrieve class indices and names.
+- **Probability Calculation**: Obtain the probability of the adversarial image being classified as the target class.
+- **Pre-trained Model Support**: Compatible with any pre-trained model from `torchvision`; defaults to ResNet50.
+- **GPU Acceleration**: Utilize CUDA-enabled GPUs for faster computations if available.
+
+## Installation
+
+### Prerequisites
+
+- **Python 3.10.12**
+- **Conda** (Anaconda or Miniconda)
+
+### Setup Instructions
+
+1. **Clone the Repository**
+
+   ```bash
+   git clone https://github.com/yourusername/adversarial-noise-generator.git
+   cd adversarial-noise-generator
+
+2. **Create a Conda Environment**
+   ```bash
+   conda create -n adversarial_env python=3.10.12
+   conda activate adversarial_env
+
+3. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   
+   
+   
