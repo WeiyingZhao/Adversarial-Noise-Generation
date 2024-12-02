@@ -42,7 +42,22 @@ class AdversarialNoiseGenerator:
             "https://s3.amazonaws.com/deep-learning-models/image-models/imagenet_class_index.json"))
         self.idx2label = [class_idx[str(k)][1] for k in range(len(class_idx))]
         self.label2idx = {class_idx[str(k)][1]: int(k) for k in range(len(class_idx))}
+        
+    def get_class_name(self, class_index):
+        """
+        Get the class name for a given class index.
 
+        Parameters:
+        - class_index: The index of the class.
+
+        Returns:
+        - Class name corresponding to the class index.
+        """
+        if 0 <= class_index < len(self.idx2label):
+            return self.idx2label[class_index]
+        else:
+            raise ValueError(f"Class index '{class_index}' is out of range.")
+        
     def get_class_index(self, class_name):
         """
         Get the class index for a given class name.
