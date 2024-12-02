@@ -8,6 +8,7 @@ from urllib.request import urlopen
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import torch.nn.functional as F
 
 class AdversarialNoiseGenerator:
     def __init__(self, model=None, device='cpu'):
@@ -42,22 +43,7 @@ class AdversarialNoiseGenerator:
             "https://s3.amazonaws.com/deep-learning-models/image-models/imagenet_class_index.json"))
         self.idx2label = [class_idx[str(k)][1] for k in range(len(class_idx))]
         self.label2idx = {class_idx[str(k)][1]: int(k) for k in range(len(class_idx))}
-        
-    def get_class_name(self, class_index):
-        """
-        Get the class name for a given class index.
 
-        Parameters:
-        - class_index: The index of the class.
-
-        Returns:
-        - Class name corresponding to the class index.
-        """
-        if 0 <= class_index < len(self.idx2label):
-            return self.idx2label[class_index]
-        else:
-            raise ValueError(f"Class index '{class_index}' is out of range.")
-        
     def get_class_index(self, class_name):
         """
         Get the class index for a given class name.
@@ -72,6 +58,21 @@ class AdversarialNoiseGenerator:
             return self.label2idx[class_name]
         else:
             raise ValueError(f"Class name '{class_name}' not found in ImageNet classes.")
+
+    def get_class_name(self, class_index):
+        """
+        Get the class name for a given class index.
+
+        Parameters:
+        - class_index: The index of the class.
+
+        Returns:
+        - Class name corresponding to the class index.
+        """
+        if 0 <= class_index < len(self.idx2label):
+            return self.idx2label[class_index]
+        else:
+            raise ValueError(f"Class index '{class_index}' is out of range.")
 
     def get_random_class(self, exclude_class=None):
         """
@@ -142,7 +143,7 @@ class AdversarialNoiseGenerator:
         - num_iterations: Number of iterations to run the attack (default 100).
 
         Returns:
-        - Tuple of (adversarial PIL Image, added noise tensor, target class name)
+        - Tuple of (adversarial PIL Image, added noise tensor, target class name, probability)
         """
         # Load and preprocess the image
         img = Image.open(image_path).convert('RGB')
@@ -164,7 +165,7 @@ class AdversarialNoiseGenerator:
             target_name = target_class
         elif isinstance(target_class, int):
             target_idx = target_class
-            target_name = self.idx2label[target_idx]
+            target_name = self.get_class_name(target_idx)
         else:
             raise ValueError(
                 "target_class must be None, a string (class name), or an integer (class index).")
@@ -183,7 +184,10 @@ class AdversarialNoiseGenerator:
         # Convert tensor to PIL Image
         adv_img_pil = transforms.ToPILImage()(adv_img.squeeze().cpu())
 
-        return adv_img_pil, noise.cpu(), target_name
+        # Calculate the probability of the target class
+        prob = self.get_class_probability(adv_img_norm, target_idx)
+
+        return adv_img_pil, noise.cpu(), target_name, prob
 
     def classify(self, image):
         """
@@ -218,6 +222,23 @@ class AdversarialNoiseGenerator:
         pred_class = self.idx2label[pred_idx]
         return pred_idx, pred_class
 
+    def get_class_probability(self, image_tensor, class_index):
+        """
+        Get the probability of the image being classified as a specific class.
+
+        Parameters:
+        - image_tensor: Normalized image tensor (1 x C x H x W).
+        - class_index: Class index for which to get the probability.
+
+        Returns:
+        - Probability value (float between 0 and 1).
+        """
+        with torch.no_grad():
+            outputs = self.model(image_tensor)
+            probabilities = F.softmax(outputs, dim=1)
+            prob = probabilities[0, class_index].item()
+        return prob
+
     def visualize_attack(self, image_path, target_class=None, epsilon=0.01, num_iterations=100):
         """
         Generate adversarial image and display the original image, noise, and adversarial image.
@@ -228,8 +249,8 @@ class AdversarialNoiseGenerator:
         - epsilon: Step size for each iteration.
         - num_iterations: Number of iterations to run the attack.
         """
-        # Generate adversarial image and get the noise
-        adv_img_pil, noise, target_name = self.generate(image_path, target_class, epsilon, num_iterations)
+        # Generate adversarial image and get the noise and probability
+        adv_img_pil, noise, target_name, prob = self.generate(image_path, target_class, epsilon, num_iterations)
 
         # Load original image
         original_img = Image.open(image_path).convert('RGB')
@@ -256,5 +277,5 @@ class AdversarialNoiseGenerator:
         axs[2].set_title('Adversarial Image')
         axs[2].axis('off')
 
-        plt.suptitle(f"Target Class: {target_name}", fontsize=16)
+        plt.suptitle(f"Target Class: {target_name} (Probability: {prob:.4f})", fontsize=16)
         plt.show()
