@@ -4,6 +4,11 @@ A Python library for generating adversarial images by adding imperceptible noise
 
 ## Overview
 
+![Adversarial Example](results/adversarial_noise_example.png)
+
+*Figure 1: Original Image (left), Adversarial Noise (center), and Adversarial Image (right)*
+
+
 The Adversarial Noise Generator allows users to create adversarial examples by subtly modifying images so that a pre-trained image classification model misclassifies them as a target class chosen by the user or randomly selected. The modifications are minimal and often imperceptible to the human eye, yet they effectively deceive the model.
 
 This tool is valuable for researchers and practitioners interested in understanding model vulnerabilities, testing robustness, and exploring the mechanics of adversarial attacks in deep learning.
